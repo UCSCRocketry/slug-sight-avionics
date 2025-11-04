@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+env/
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Data files
+data/flights/*.csv
+data/flights/*.json
+data/raw/*
+*.log
+
+# But keep example files
+!data/flights/.gitkeep
+!data/raw/.gitkeep
+
+# Firmware build artifacts
+firmware/.pio/
+firmware/lib/
+firmware/.vscode/
+firmware/*.bin
+firmware/*.hex
+firmware/*.elf
+
+# Temporary files
+*.tmp
+*.bak
+
+# Config overrides (keep templates)
+config/*_local.yaml
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Test coverage
+.coverage
+htmlcov/
