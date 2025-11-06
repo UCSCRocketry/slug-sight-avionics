@@ -2,11 +2,11 @@
 
 **Last Updated:** November 6, 2025
 
-## 🚀 Active Firmware Projects
+## Active Firmware Projects
 
 This project uses a **dual Feather M4 architecture** with two separate firmware projects:
 
-### 1. `firmware_rocket/` - Rocket Flight Computer ✅
+### 1. `firmware_rocket/` - Rocket Flight Computer 
 
 **Hardware:** Adafruit Feather M4 Express (on the rocket)
 
@@ -42,7 +42,7 @@ pio device monitor
 
 ---
 
-### 2. `firmware_ground/` - Ground Receiver Bridge ✅
+### 2. `firmware_ground/` - Ground Receiver Bridge 
 
 **Hardware:** Adafruit Feather M4 Express (on ground, connected to laptop via USB)
 
@@ -72,7 +72,7 @@ pio device monitor
 
 ---
 
-## 🔗 How They Work Together
+## How They Work Together
 
 ```
 ┌─────────────────────────────┐
@@ -136,30 +136,7 @@ The rocket firmware keeps everything in one `main.cpp` file for simplicity, with
 
 ---
 
-## 🗑️ Cleaned Up
-
-### `firmware/` folder - REMOVED ❌
-
-**What it was:**
-- Old generic firmware template for ESP32/Teensy boards
-- Created before Feather M4 specification
-- Had modular structure with separate files for each sensor
-- Used different LoRa library (not RadioHead)
-
-**Why removed:**
-- Not compatible with Feather M4 hardware
-- Outdated architecture
-- Confusing to have three firmware folders
-- Functionality already implemented in `firmware_rocket/`
-
-**What was preserved:**
-- ✅ Flight state machine logic → `firmware_rocket/src/state/flight_state.h`
-- ✅ All sensor functionality → Already in `firmware_rocket/src/main.cpp`
-- ✅ LoRa transmission → Already working with RadioHead
-
----
-
-## 🛠️ Working with PlatformIO
+##  Working with PlatformIO
 
 ### Opening Projects
 
@@ -224,28 +201,10 @@ pio run --target clean
 
 ---
 
-## 🔍 Key Differences Between Old and New
-
-| Aspect | Old `firmware/` | New `firmware_rocket/` |
-|--------|----------------|------------------------|
-| **Board** | ESP32/Teensy | Feather M4 |
-| **Organization** | Modular (separate .h files) | Single main.cpp |
-| **LoRa Library** | LoRa.h (Sandeep Mistry) | RadioHead |
-| **Barometer** | Generic BMP3XX | Specific BMP280 (SPI) |
-| **IMU** | MPU6050 | LSM6DSOX |
-| **Status** | Template/Generic | Production-ready |
-| **State Machine** | Basic skeleton | Fully implemented |
-
----
-
-## ✅ Summary
-
-You now have a **clean, focused firmware structure**:
+## Summary
 
 1. **`firmware_rocket/`** - Complete rocket flight computer with all sensors
 2. **`firmware_ground/`** - Simple LoRa-to-USB bridge
 3. Flight state machine preserved and enhanced
 4. Old generic template removed
 5. All sensors working and transmitting via LoRa
-
-The system is **production-ready** and follows the dual-Feather architecture you specified! 🚀
