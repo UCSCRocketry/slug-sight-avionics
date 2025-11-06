@@ -94,6 +94,7 @@ def telemetry_thread(config, data_logger):
     global packet_count, error_count, start_time
     
     log = setup_logging(config)
+    reader = None  # Initialize to None for error handling
     
     try:
         # Initialize serial reader and parser
@@ -141,9 +142,23 @@ def telemetry_thread(config, data_logger):
             
     except Exception as e:
         log.error(f"Telemetry thread error: {e}")
+        print("\n" + "!" * 60)
+        print("  ⚠️  HARDWARE NOT CONNECTED")
+        print("!" * 60)
+        print("\nGround Feather M4 is not connected via USB.")
+        print("\nTo connect hardware:")
+        print("  1. Plug ground Feather M4 into USB port")
+        print("  2. Find the serial port:")
+        print("     macOS: ls /dev/cu.usbmodem*")
+        print("     Linux: ls /dev/ttyACM*")
+        print("  3. Update config/ground_config.yaml with correct port")
+        print("  4. Restart ground station")
+        print("\nThe web interface will still run for testing.")
+        print("You can view it at: http://localhost:{}\n".format(config.get('web', {}).get('port', 8080)))
     finally:
-        reader.close()
-        data_logger.close()
+        if reader is not None:
+            reader.close()
+        # Don't close data_logger here - let main() handle it
 
 def print_telemetry_compact(telemetry):
     """Print telemetry in compact format"""
@@ -189,9 +204,13 @@ def main():
     # Initialize data logger
     data_logger = DataLogger(config['data_logging'])
     
+    # Get web server port from config
+    web_port = config.get('web', {}).get('port', 8080)
+    web_host = config.get('web', {}).get('host', '0.0.0.0')
+    
     print("\n✓ Ground station ready!")
     print(f"✓ Logging to: {data_logger.get_current_file()}")
-    print(f"\n Web interface: http://localhost:5000")
+    print(f"\n Web interface: http://localhost:{web_port}")
     print("   Open in your browser to view live telemetry")
     print("\n" + "-" * 60 + "\n")
     
@@ -206,12 +225,13 @@ def main():
     # Start Flask web server
     try:
         print("Starting web server...")
-        app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+        app.run(host=web_host, port=web_port, debug=False, use_reloader=False)
     except KeyboardInterrupt:
         pass
     finally:
         running = False
         telemetry_worker.join(timeout=2)
+        data_logger.close()  # Close logger here
         
         print("\n" + "=" * 60)
         print("Ground station stopped.")
