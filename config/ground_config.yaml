@@ -19,9 +19,6 @@ serial:
 # DATA LOGGING CONFIGURATION
 # ==========================================
 data_logging:
-  # Output format
-  format: "csv"                   # Options: "csv" or "json"
-  
   # CSV settings
   csv:
     delimiter: ","
@@ -39,7 +36,7 @@ data_logging:
   
   # Real-time logging
   flush_interval_s: 1.0           # Write to disk every 1 second
-  buffer_size: 100                # Buffer up to 100 packets
+  buffer_size: 10                 # Flush CSV every 10 packets
 
 # ==========================================
 # TELEMETRY FIELDS

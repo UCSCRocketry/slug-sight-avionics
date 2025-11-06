@@ -25,6 +25,9 @@
 #include <Adafruit_LIS3MDL.h>
 #include <Adafruit_GPS.h>
 
+// Flight state machine
+#include "state/flight_state.h"
+
 // ==========================================
 // PIN DEFINITIONS
 // ==========================================
@@ -85,12 +88,19 @@ Adafruit_LSM6DSOX lsm6ds;        // I2C
 Adafruit_LIS3MDL lis3mdl;        // I2C
 Adafruit_GPS GPS(&Serial1);      // Hardware Serial1
 
+FlightStateMachine flightState;  // Flight state machine
+
 TelemetryPacket telemetry;
 uint16_t packet_counter = 0;
 
 // Timing
 unsigned long lastTransmit = 0;
 const unsigned long TX_INTERVAL = 100;  // ms (10 Hz)
+
+// Velocity calculation
+float prev_altitude = 0.0;
+unsigned long prev_time = 0;
+float vertical_velocity = 0.0;
 
 // ==========================================
 // SETUP
@@ -202,11 +212,19 @@ void setup() {
     GPS.sendCommand(PMTK_SET_NMEA_UPDATE_10HZ);
     Serial.println("OK (waiting for fix)");
     
+    // ==========================================
+    // Initialize Flight State Machine
+    // ==========================================
+    Serial.print("Initializing flight state machine... ");
+    flightState.begin(bmp.readAltitude(1013.25));  // Use current altitude as pad altitude
+    Serial.println("OK");
+    
     Serial.println("\n========================================");
     Serial.println("SYSTEM READY - Waiting for launch...");
     Serial.println("========================================\n");
     
     digitalWrite(LED_BUILTIN, HIGH);
+    prev_time = millis();
 }
 
 // ==========================================
@@ -260,10 +278,21 @@ void loop() {
             telemetry.gps_satellites = 0;
         }
         
+        // Calculate vertical velocity
+        unsigned long dt = currentTime - prev_time;
+        if (dt > 0) {
+            vertical_velocity = (telemetry.altitude - prev_altitude) / (dt / 1000.0);
+            prev_altitude = telemetry.altitude;
+            prev_time = currentTime;
+        }
+        
+        // Update flight state machine
+        flightState.update(telemetry.accel_z, telemetry.altitude, vertical_velocity);
+        
         // Metadata
         telemetry.timestamp_ms = currentTime;
         telemetry.packet_num = packet_counter++;
-        telemetry.state = 0;  // TODO: Implement flight state machine
+        telemetry.state = flightState.getState();
         
         // ==========================================
         // Transmit via LoRa
