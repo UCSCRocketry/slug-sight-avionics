@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Slugsight Telemetry</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .telemetry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .telemetry-item { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Slugsight Telemetry</h1>
+    <div class="telemetry-grid" id="telemetryData"></div>
+    <script>
+        function updateTelemetry() {
+            fetch('/api/telemetry')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('telemetryData');
+                    container.innerHTML = '';
+                    for (const [key, value] of Object.entries(data)) {
+                        const div = document.createElement('div');
+                        div.className = 'telemetry-item';
+                        div.innerHTML = `<strong>${key}:</strong> ${value}`;
+                        container.appendChild(div);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        setInterval(updateTelemetry, 1000);
+        updateTelemetry();
+    </script>
+</body>
+</html>
