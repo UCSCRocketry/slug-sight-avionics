@@ -128,13 +128,16 @@ The system transmits 17 fields from the rocket, and the receiver adds RSSI (Rece
 
 ### Data Packet & CSV Format
 
-The system logs data in Comma-Separated Values (CSV) format.
+All telemetry is automatically saved to CSV files in the `gds/flight_data/` directory.
 
-**CSV Header:**
-`timestamp,packet_count,Pitch,Roll,Yaw,Altitude,Velocity,Accel X,Accel Y,Accel Z,Pressure Pa,IMU Temp C,GPS Fix,GPS Sats,GPS Lat,GPS Lon,GPS Alt m,GPS Speed m/s,VBat,RSSI`
+**Filename format:** `slugsight_YYYYMMDD_HHMMSS.csv`
 
-**Example Row:**
-`2025-11-09T12:00:00.123,0,5.2,-3.1,45.8,125.5,15.3,0.5,0.2,9.8,101325.0,22.5,1,8,37.123456,-122.345678,130.2,12.5,3.85,-95`
+**CSV Format:**
+```csv
+timestamp,packet_count,Pitch,Roll,Yaw,Altitude,Velocity,Accel X,Accel Y,Accel Z,Pressure Pa,IMU Temp C,GPS Fix,GPS Sats,GPS Lat,GPS Lon,GPS Alt m,GPS Speed m/s,VBat,RSSI
+2025-11-09T12:00:00.123,0,5.2,-3.1,45.8,125.5,15.3,0.5,0.2,9.8,101325.0,22.5,1,8,37.123456,-122.345678,130.2,12.5,3.85,-95
+...
+```
 
 ## Quick Start
 
