@@ -1,38 +1,190 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Slugsight Telemetry</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rocket Team - SlugSight Avionics GDS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;700&display.swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .telemetry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-        .telemetry-item { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        :root { --font-family: Roboto, sans-serif; --font-family-mono: 'Roboto Mono', monospace; --bg-color: #f0f2f5; --card-bg: #ffffff; --text-color: #1c1e21; --text-secondary: #606770; --primary-color: #0d6efd; --purple-accent: #6f42c1; --border-color: #e0e0e0; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); --navbar-bg: #ffffff; --status-bg: #ffffff; --status-text: #606770; --status-connected: #28a745; --status-disconnected: #dc3545; --status-waiting: #ffc107; --red-accent: #e74c3c; --log-bg: #f8f9fa; }
+        body.dark-mode { --bg-color: #18191a; --card-bg: #242526; --text-color: #e4e6eb; --text-secondary: #b0b3b8; --primary-color: #409CFF; --purple-accent: #9370DB; --border-color: #3e4042; --shadow: 0 4px 12px rgba(0, 0, 0, 0.2); --navbar-bg: #242526; --status-bg: #242526; --status-text: #b0b3b8; --status-waiting: #ffca2c; --red-accent: #FF6347; --log-bg: #1c1c1c; }
+        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color); margin: 0; padding-top: 80px; padding-bottom: 50px; transition: background-color 0.3s ease, color 0.3s ease; }
+        @keyframes pulse-warning { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        nav { position: fixed; top: 0; left: 0; right: 0; height: 60px; background-color: var(--navbar-bg); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 0 25px; display: flex; align-items: center; justify-content: space-between; z-index: 1000; border-bottom: 1px solid var(--border-color); transition: background-color 0.3s ease; }
+        .nav-title { font-size: 1.4em; font-weight: 700; color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
+        .nav-subtitle { font-weight: 400; color: var(--text-secondary); font-size: 0.8em; margin-left: 10px; padding-left: 10px; border-left: 2px solid var(--border-color); }
+        @media (max-width: 600px) { .nav-subtitle { display: none; } }
+        .nav-status { display: flex; align-items: center; gap: 20px; }
+        .nav-item { font-family: var(--font-family-mono); font-size: 0.9em; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; }
+        .nav-item .material-icons-outlined { font-size: 1.2em; vertical-align: -4px; margin-right: 6px; }
+        #vbat-display.low-bat, #rssi-display.low-rssi { color: var(--red-accent); font-weight: 700; }
+        .settings-menu { position: relative; }
+        .settings-btn { background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+        .settings-btn:hover { background-color: rgba(0,0,0,0.05); }
+        body.dark-mode .settings-btn:hover { background-color: rgba(255,255,255,0.1); }
+        .settings-dropdown { display: none; position: absolute; top: 45px; right: 0; background-color: var(--card-bg); border-radius: 8px; box-shadow: var(--shadow); border: 1px solid var(--border-color); width: 260px; z-index: 1001; padding: 10px; }
+        .settings-dropdown.show { display: block; }
+        .setting-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; font-size: 0.9em; color: var(--text-color); }
+        .setting-item button { background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 12px; border-radius: 6px; cursor: pointer; width: 100%; text-align: left; font-size: 1em; font-weight: 500; }
+        .setting-item button:hover { border-color: var(--primary-color); background-color: rgba(0,0,0,0.05); }
+        .setting-item select { padding: 5px; border-radius: 4px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); }
+        .inc-btn { width: 28px; height: 28px; padding: 0 !important; margin: 0 5px !important; display: flex; align-items: center; justify-content: center; text-align: center !important; font-size: 1.2em !important; font-weight: bold !important; }
+        .flavor-text { text-align: center; font-size: 0.85em; font-weight: 600; color: var(--purple-accent); font-style: italic; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color); opacity: 0.9; letter-spacing: 0.5px; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { display: none; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .status-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 40px; background-color: var(--status-bg); border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; padding: 0 25px; z-index: 1000; transition: background-color 0.3s ease; }
+        #arduino-status { font-weight: 600; color: var(--status-disconnected); }
+        #arduino-status.connected { color: var(--status-connected); }
+        #arduino-status::before { content: '●'; margin-right: 8px; font-size: 1.2em; }
+        #port-name { font-size: 0.9em; color: var(--text-secondary); margin-left: 15px; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1400px; margin: 20px auto; }
+        .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: var(--shadow); padding: 25px; transition: box-shadow 0.3s ease, background-color 0.3s ease; display: flex; flex-direction: column; align-items: center; }
+        .card:hover { box-shadow: var(--shadow-hover); }
+        .card-title { font-size: 1.1em; font-weight: 600; color: var(--text-secondary); margin-bottom: 15px; text-align: center; }
+        .value-display { font-size: 2.8em; font-weight: 700; color: var(--primary-color); }
+        .unit { font-size: 1.2em; font-weight: 500; color: var(--text-secondary); margin-left: 8px; }
+        .bubble-level { width: 150px; height: 150px; border: 3px solid var(--border-color); border-radius: 50%; position: relative; background: radial-gradient(circle at 50% 50%, transparent 45%, var(--border-color) 45%, var(--border-color) 46%, transparent 46%), linear-gradient(to right, var(--border-color) 1px, transparent 1px) 50% 0, linear-gradient(to bottom, var(--border-color) 1px, transparent 1px) 0 50%; background-size: 100% 100%, 100% 10px, 10px 100%; background-repeat: no-repeat, repeat-y, repeat-x; transition: border-color 0.3s ease; }
+        #bubble-ball { width: 25px; height: 25px; background-color: var(--primary-color); border-radius: 50%; position: absolute; top: 50%; left: 50%; margin-left: -12.5px; margin-top: -12.5px; border: 2px solid white; box-shadow: 0 2px 5px (0,0,0,0.3); transition: transform 0.1s linear, background-color 0.3s ease; }
+        #accel-z-value { font-size: 1.2em; margin-top: 15px; color: var(--text-secondary); }
+        .compass { width: 150px; height: 150px; border: 3px solid var(--border-color); border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; transition: border-color 0.3s ease; }
+        .compass-rose { font-size: 1em; font-weight: 600; color: var(--text-secondary); position: absolute; transition: color 0.3s ease; }
+        .rose-n { top: 5px; } .rose-s { bottom: 5px; } .rose-e { right: 10px; } .rose-w { left: 10px; }
+        #compass-needle { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 40px solid var(--red-accent); position: absolute; top: 50%; left: 50%; margin-left: -7px; margin-top: -40px; transform-origin: center bottom; transition: transform 0.2s ease-out, border-bottom-color 0.3s ease; z-index: 10; }
+        #compass-heading { font-size: 1.2em; margin-top: 15px; color: var(--text-secondary); }
+        #p-gps { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 15px; width: 100%; text-align: left; }
+        .gps-readout { display: flex; flex-direction: column; }
+        .gps-label { font-size: 0.8em; color: var(--text-secondary); text-transform: uppercase; }
+        .gps-value { font-family: var(--font-family-mono); font-size: 1.2em; font-weight: 500; color: var(--text-color); }
+        #data-fix-status { color: var(--red-accent); transition: color 0.3s ease; }
+        #data-fix-status.locked { color: var(--status-connected); }
+        #data-fix-status.waiting { color: var(--status-waiting); font-weight: 700; animation: pulse-warning 1.5s infinite ease-in-out; }
+        .log-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 900px; z-index: 1005; max-height: 60vh; flex-direction: column; display: none; }
+        .log-panel.show { display: flex; }
+        .log-overlay-bg { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); z-index: 1004; }
+        .log-overlay-bg.show { display: block; }
+        .log-close-btn { position: absolute; top: 10px; right: 20px; background: none; border: none; font-size: 2.5em; color: var(--text-secondary); cursor: pointer; }
+        #log-panel-body { background-color: var(--log-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; flex-grow: 1; overflow-y: scroll; font-family: var(--font-family-mono); font-size: 0.9em; color: var(--text-secondary); }
+        .log-entry { padding: 2px 0; border-bottom: 1px dashed var(--border-color); white-space: pre-wrap; word-break: break-all; }
+        .log-time { color: var(--primary-color); margin-right: 10px; }
+        .log-status { font-weight: bold; }
+        .log-status.connected { color: var(--status-connected); }
+        .log-status.disconnected { color: var(--status-disconnected); }
     </style>
 </head>
 <body>
-    <h1>Slugsight Telemetry</h1>
-    <div class="telemetry-grid" id="telemetryData"></div>
+    <div class="log-overlay-bg" id="log-overlay-bg"></div>
+    <nav>
+        <div class="nav-title">
+            <span class="material-icons-outlined" style="color: var(--primary-color); margin-right: 8px;">rocket_launch</span> Rocket Team <span class="nav-subtitle">SlugSight Avionics GDS</span>
+        </div>
+        <div class="nav-status">
+            <span class="nav-item" id="vbat-display"><span class="material-icons-outlined">battery_unknown</span><span>--% (-- V)</span></span>
+            <span class="nav-item" id="rssi-display"><span class="material-icons-outlined">signal_cellular_off</span><span>-- dBm</span></span>
+            <div class="settings-menu">
+                <button class="settings-btn" id="settings-btn"><span class="material-icons-outlined">settings</span></button>
+                <div class="settings-dropdown" id="settings-dropdown">
+                    <div class="setting-item"><label for="dark-mode-toggle">Dark Mode</label><label class="switch"><input type="checkbox" id="dark-mode-toggle"><span class="slider"></span></label></div>
+                    <div class="setting-item"><label for="update-rate">UI Rate</label><select id="update-rate"><option value="0">Real-time</option><option value="200">5 Hz</option><option value="500" selected>2 Hz</option></select></div>
+                    <div class="setting-item" style="padding-top: 5px; border-top: 1px solid var(--border-color); flex-direction: column; align-items: flex-start;">
+                        <label for="mag-offset" style="margin-bottom: 5px;">Mag Offset</label>
+                        <div style="display:flex; align-items:center; width: 100%;">
+                            <button id="mag-dec" class="inc-btn">-</button>
+                            <input type="range" id="mag-offset" min="-180" max="180" value="0" style="flex-grow: 1; margin: 0 8px;">
+                            <button id="mag-inc" class="inc-btn">+</button>
+                            <span id="mag-offset-val" style="font-size: 0.85em; width: 45px; text-align: right; font-family: var(--font-family-mono);">0°</span>
+                        </div>
+                    </div>
+                    <div class="setting-item"><button id="log-toggle-btn">Show Event Log</button></div>
+                    <div class="flavor-text">Purple Pegasus Perspective</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="grid-container" style="margin-top: 20px;">
+        <div class="card"><div class="card-title">Accelerometer (Tilt)</div><div class="bubble-level"><div id="bubble-ball"></div></div><div id="accel-z-value">Z: 0.00 g</div></div>
+        <div class="card"><div class="card-title">Magnetometer (Compass)</div><div class="compass"><div class="compass-rose rose-n">N</div><div class="compass-rose rose-s">S</div><div class="compass-rose rose-e">E</div><div class="compass-rose rose-w">W</div><div id="compass-needle"></div></div><div id="compass-heading">0°</div></div>
+        <div class="card"><div class="card-title">Atmospheric Pressure</div><canvas id="pressure-gauge"></canvas><div id="pressure-value" class="value-display" style="font-size: 2em; margin-top: -15px;">0 <span class="unit" style="font-size: 0.8em;">Pa</span></div></div>
+        <div class="card"><div class="card-title">IMU Temperature</div><div class="value-display"><span id="bmp-temp-value">0.00</span><span class="unit">°C</span></div></div>
+        <div class="card"><div class="card-title">Altitude</div><div class="value-display"><span id="bmp-alt-value">0.00</span><span class="unit">m</span></div></div>
+        <div class="card"><div class="card-title">Pitch</div><canvas id="gyro-x-gauge"></canvas><div id="gyro-x-value" class="value-display" style="font-size: 2em; margin-top: -15px;">0 <span class="unit" style="font-size: 0.8em;">deg</span></div></div>
+        <div class="card"><div class="card-title">Roll</div><canvas id="gyro-y-gauge"></canvas><div id="gyro-y-value" class="value-display" style="font-size: 2em; margin-top: -15px;">0 <span class="unit" style="font-size: 0.8em;">deg</span></div></div>
+        <div class="card"><div class="card-title">GPS Status</div><div id="p-gps"><div class="gps-readout"><div class="gps-label">Fix Status</div><div class="gps-value" id="data-fix-status">No Fix</div></div><div class="gps-readout"><div class="gps-label">Satellites</div><div class="gps-value" id="data-sats">0</div></div><div class="gps-readout"><div class="gps-label">Latitude</div><div class="gps-value" id="data-lat">0.000000</div></div><div class="gps-readout"><div class="gps-label">Longitude</div><div class="gps-value" id="data-lon">0.000000</div></div></div></div>
+    </div>
+    <div class="log-panel card" id="log-panel"><button class="log-close-btn" id="log-close-btn">&times;</button><div class="card-title">Event Log</div><div id="log-panel-body"></div></div>
+    <div class="status-bar"><span id="arduino-status">Connecting...</span><span id="port-name"></span></div>
     <script>
-        function updateTelemetry() {
-            fetch('/api/telemetry')
-                .then(response => response.json())
-                .then(data => {
-                    const container = document.getElementById('telemetryData');
-                    container.innerHTML = '';
-                    for (const [key, value] of Object.entries(data)) {
-                        const div = document.createElement('div');
-                        div.className = 'telemetry-item';
-                        div.innerHTML = `<strong>${key}:</strong> ${value}`;
-                        container.appendChild(div);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
+        let chartObjects = {}; let currentUpdateRate = 500; let lastUpdateTime = 0; let hasEverHadFix = false; let magOffset = 0; let currentVisualYaw = 0;
+        const THEME_COLORS = { dark: { primary: '#409CFF', purple: '#9370DB', border: '#3e4042', red: '#FF6347' }, light: { primary: '#0d6efd', purple: '#6f42c1', border: '#e0e0e0', red: '#e74c3c' } };
+        const gaugeConfig = (min, max, label) => ({ type: 'doughnut', data: { labels: [label, ''], datasets: [{ data: [0, max - min], backgroundColor: [THEME_COLORS.light.primary, THEME_COLORS.light.border], borderWidth: 0, circumference: 180, rotation: -90 }] }, options: { responsive: true, maintainAspectRatio: true, aspectRatio: 2, cutout: '70%', plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { duration: 0 } } });
+        function updateGauge(chart, value, min, max, elementId, unit) { if (!chart) return; const val = parseFloat(value) || 0.0; const clampedVal = Math.max(min, Math.min(val, max)); const dataValue = clampedVal - min; chart.data.datasets[0].data[0] = dataValue; chart.data.datasets[0].data[1] = (max - min) - dataValue; const ctx = chart.ctx; const chartArea = chart.chartArea; if (chartArea) { const theme = document.body.classList.contains('dark-mode') ? THEME_COLORS.dark : THEME_COLORS.light; const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top); gradient.addColorStop(0, theme.primary); gradient.addColorStop(1, theme.purple); chart.data.datasets[0].backgroundColor[0] = gradient; chart.data.datasets[0].backgroundColor[1] = theme.border; } chart.update('none'); document.getElementById(elementId).innerHTML = `${val.toFixed(2)} <span class="unit" style="font-size: 0.8em;">${unit}</span>`; }
+        function initializeCharts() { chartObjects.pressureGauge = new Chart(document.getElementById('pressure-gauge').getContext('2d'), gaugeConfig(90000, 105000, 'Pressure')); chartObjects.pitchGauge = new Chart(document.getElementById('gyro-x-gauge').getContext('2d'), gaugeConfig(-90, 90, 'Pitch')); chartObjects.rollGauge = new Chart(document.getElementById('gyro-y-gauge').getContext('2d'), gaugeConfig(-180, 180, 'Roll')); }
+        function logToPanel(message, type = 'data') { const panel = document.getElementById('log-panel-body'); const entry = document.createElement('div'); entry.classList.add('log-entry'); let statusClass = type === 'connect' ? 'log-status connected' : (type === 'disconnect' ? 'log-status disconnected' : ''); entry.innerHTML = `<span class="log-time">[${new Date().toLocaleTimeString()}]</span> <span class="${statusClass}">${message}</span>`; panel.appendChild(entry); panel.scrollTop = panel.scrollHeight; }
+        function updateStatus(status) { const statusEl = document.getElementById('arduino-status'); statusEl.textContent = status.arduino_connected ? 'Connected' : 'Disconnected'; statusEl.className = status.arduino_connected ? 'connected' : ''; document.getElementById('port-name').textContent = status.arduino_connected ? `on ${status.port}` : `(${status.port})`; }
+        function updateGUI(data, timestamp) {
+            try {
+                const vbat = parseFloat(data['VBat']) || 0.0; const rssi = parseFloat(data['RSSI']) || 0.0;
+                const pct = Math.max(0, Math.min(1, (vbat - 3.2) / (4.2 - 3.2))); const pctInt = Math.round(pct * 100);
+                const vbatEl = document.getElementById('vbat-display'); vbatEl.querySelector('span:last-child').textContent = ` ${pctInt}% (${vbat.toFixed(2)} V)`; vbatEl.querySelector('span:first-child').textContent = pctInt < 20 ? 'battery_alert' : 'battery_full'; vbatEl.classList.toggle('low-bat', pctInt < 20);
+                const rssiEl = document.getElementById('rssi-display'); rssiEl.querySelector('span:last-child').textContent = ` ${rssi.toFixed(0)} dBm`; rssiEl.classList.toggle('low-rssi', rssi < -100);
+                document.getElementById('bmp-temp-value').textContent = (parseFloat(data['IMU Temp C']) || 0.0).toFixed(2);
+                document.getElementById('bmp-alt-value').textContent = (parseFloat(data['Altitude']) || 0.0).toFixed(2);
+                document.getElementById('accel-z-value').textContent = `Z: ${(parseFloat(data['Accel Z']) || 0.0).toFixed(2)} g`;
+                const bubble = document.getElementById('bubble-ball');
+                bubble.style.transform = `translate(${Math.max(-60, Math.min((parseFloat(data['Accel X'])||0)*60, 60))}px, ${Math.max(-60, Math.min(-(parseFloat(data['Accel Y'])||0)*60, 60))}px)`;
+
+                let rawYaw = parseFloat(data['Yaw']) || 0.0;
+                let targetYaw = (rawYaw + magOffset) % 360; if (targetYaw < 0) targetYaw += 360;
+                let currentMod = currentVisualYaw % 360; if (currentMod < 0) currentMod += 360;
+                let delta = targetYaw - currentMod;
+                if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
+                currentVisualYaw += delta;
+                document.getElementById('compass-needle').style.transform = `rotate(${currentVisualYaw}deg)`;
+                document.getElementById('compass-heading').textContent = `${targetYaw.toFixed(0)}°`;
+
+                updateGauge(chartObjects.pressureGauge, data['Pressure Pa'], 90000, 105000, 'pressure-value', 'Pa');
+                updateGauge(chartObjects.pitchGauge, data['Pitch'], -90, 90, 'gyro-x-value', 'deg');
+                updateGauge(chartObjects.rollGauge, data['Roll'], -180, 180, 'gyro-y-value', 'deg');
+
+                const fixEl = document.getElementById('data-fix-status');
+                const fix = parseInt(data['GPS Fix'], 10) || 0;
+                if (fix > 0) { hasEverHadFix = true; fixEl.textContent = "3D Fix Locked"; fixEl.className = "gps-value locked"; }
+                else if (hasEverHadFix) { fixEl.textContent = "Waiting for Fix..."; fixEl.className = "gps-value waiting"; }
+                else { fixEl.textContent = "No Fix"; fixEl.className = "gps-value"; }
+
+                document.getElementById('data-sats').textContent = data['GPS Sats'] || 0;
+                document.getElementById('data-lat').textContent = (parseFloat(data['GPS Lat']) || 0.0).toFixed(6);
+                document.getElementById('data-lon').textContent = (parseFloat(data['GPS Lon']) || 0.0).toFixed(6);
+                logToPanel(JSON.stringify(data));
+            } catch (e) { console.error(e); }
         }
-        
-        setInterval(updateTelemetry, 1000);
-        updateTelemetry();
+        function connectWebSocket() {
+            const ws = new WebSocket(`${window.location.protocol === "https" ? "wss" : "ws"}://${window.location.host}/ws`);
+            ws.onopen = () => logToPanel("WebSocket connected", "connect");
+            ws.onmessage = (event) => { const now = Date.now(); if (currentUpdateRate > 0 && (now - lastUpdateTime < currentUpdateRate)) return; lastUpdateTime = now; const msg = JSON.parse(event.data); if (msg.type === 'update') { updateStatus(msg.status); updateGUI(msg.data, now); } };
+            ws.onclose = () => { logToPanel("WebSocket closed. Reconnecting...", "disconnect"); setTimeout(connectWebSocket, 3000); };
+        }
+        window.onload = () => {
+            initializeCharts();
+            document.getElementById('settings-btn').onclick = () => document.getElementById('settings-dropdown').classList.toggle('show');
+            document.getElementById('dark-mode-toggle').onchange = (e) => { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'enabled' : 'disabled'); if(chartObjects.pressureGauge) updateGauge(chartObjects.pressureGauge, 0, 0, 1, 'pressure-value', 'Pa'); };
+            if (localStorage.getItem('darkMode') !== 'disabled') { document.body.classList.add('dark-mode'); document.getElementById('dark-mode-toggle').checked = true; }
+            document.getElementById('update-rate').onchange = (e) => { currentUpdateRate = parseInt(e.target.value, 10); };
+            const updateMagOffset = (val) => { let newVal = parseInt(val, 10); if (isNaN(newVal)) return; newVal = Math.max(-180, Math.min(180, newVal)); magOffset = newVal; document.getElementById('mag-offset').value = newVal; document.getElementById('mag-offset-val').textContent = `${newVal > 0 ? '+' : ''}${newVal}°`; };
+            document.getElementById('mag-offset').oninput = (e) => { updateMagOffset(e.target.value); };
+            document.getElementById('mag-dec').onclick = () => { updateMagOffset(magOffset - 1); };
+            document.getElementById('mag-inc').onclick = () => { updateMagOffset(magOffset + 1); };
+            const logPanel = document.getElementById('log-panel');
+            document.getElementById('log-toggle-btn').onclick = () => { logPanel.classList.toggle('show'); document.getElementById('log-overlay-bg').classList.toggle('show'); document.getElementById('settings-dropdown').classList.remove('show'); };
+            document.getElementById('log-close-btn').onclick = document.getElementById('log-overlay-bg').onclick = () => { logPanel.classList.remove('show'); document.getElementById('log-overlay-bg').classList.remove('show'); };
+            connectWebSocket();
+        };
     </script>
 </body>
 </html>
