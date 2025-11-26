@@ -1,4 +1,12 @@
 /*
+ * SlugSight Avionics Firmware
+ * Copyright (c) 2025 Rocket Team
+ * Licensed under the GNU General Public License v3.0 (GPLv3)
+ * (Required due to dependency on the GPL-licensed RadioHead library.)
+ * ---------------------------------------------------------------------------
+ */
+
+/*
  * SlugSight FEATHER M4 - LORA TRANSMITTER (v28 - L2/L3 Calibrate-Once)
  *
  * - MOUNTING: Vertical (Y-Axis = Up/Down).

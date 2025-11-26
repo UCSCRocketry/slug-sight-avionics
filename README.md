@@ -181,6 +181,16 @@ python slugsight_gds.py
 
 Once running, open **http://127.0.0.1:8080** in your web browser.
 
+### Testing & Verification
+
+Before heading to the launch site, run the integration test suite. This verifies that the parser handles data correctly and that CSV logging is working.
+
+```bash
+python test_integration.py
+```
+
+**Expected Output**: `OK` (All tests passed).
+
 ## Data Logging & Redundancy Strategy
 
 This system implements a **Dual-Redundant** logging strategy to ensure no flight data is lost:

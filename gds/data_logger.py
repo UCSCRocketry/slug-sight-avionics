@@ -1,3 +1,7 @@
+# SlugSight Avionics GDS
+# Copyright (c) 2025 Rocket Team
+# Licensed under the MIT License (See LICENSE file for full terms)
+# ---------------------------------------------------------------------------
 
 import csv
 import logging

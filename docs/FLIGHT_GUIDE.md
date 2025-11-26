@@ -33,13 +33,18 @@ INFO - Open this URL in your browser: [http://127.0.0.1:8080](http://127.0.0.1:8
 1.  Open your web browser to: **http://127.0.0.1:8080**
 2.  Verify the "Connected" status indicator is Green.
 3.  Confirm that telemetry numbers are updating.
+4.  Check GPS Status:
+        ORANGE PULSE: "Waiting for Fix..." (GPS is searching).
+        GREEN: "3D Fix Locked" (Ready to fly).
 
 ### 4. Pre-Flight Checks
 * [ ] **Lithium Ion Battery**: VBat > 3.7V (Appears immediately on boot). Ideally fully charged (4.2V).
+* [ ] **Orientation**: Verify the tilt readings are consistent with the rocket attitude
+* [ ] **Compass**: Check that the heading points North (verify using phone compass).
 * [ ] **Signal**: RSSI > -100 dBm (Values closer to 0 are better).
-* [ ] **GPS**: Wait for GPS fix (may take 30-60 seconds). Fix status will update from '0' to '1'.
+* [ ] **GPS**: Wait for GPS fix (may take 30-60 seconds). Fix status will update from 'No Fix' to '3D Fix Locked'.
 * [ ] **Sensors**: Ensure altitude reading is reasonable relative to the launch site (approx. 0-100m).
-* [ ] **Data Logging**: Confirm the Ground Station terminal indicates recording is active.
+* [ ] **Data Logging**: Confirm the Ground Station terminal indicates recording is active and a file with data has been generated.
 
 ## During Flight
 
@@ -122,6 +127,14 @@ ls /dev/ttyUSB* /dev/ttyACM*
 * Verify write permissions on the `gds/flight_data/` directory.
 * Check available disk space.
 
+### "Bad Packet Length" Warning
+* This is normal during startup or if the signal is very weak. The system is designed to ignore these and keep running.
+
+### Dashboard not updating
+* Check that the board is securely connected to the USB cable.
+* Check the Refresh Rate in the Settings Menu. Ensure it isn't paused.
+* Verify the Receiver RX LED is flashing (indicating it is receiving LoRa packets).
+
 ## Emergency Procedures
 
 ### Computer Crash During Flight
@@ -141,7 +154,7 @@ ls /dev/ttyUSB* /dev/ttyACM*
 * [ ] Ground station running and connected.
 * [ ] Web dashboard active at http://127.0.0.1:8080.
 * [ ] CSV filename noted for post-flight retrieval.
-* [ ] GPS has fix (Status = 1).
+* [ ] GPS has fix (Status = '3D Fix Locked').
 * [ ] **Lithium Ion Battery** voltage nominal (> 3.7V).
 * [ ] RSSI acceptable (> -100 dBm).
 * [ ] All sensor readouts are updating dynamically.

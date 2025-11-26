@@ -1,6 +1,7 @@
-# SlugSight Telemetry - Ground Station
-# Copyright (c) 2025 UCSC Rocket Team
-# Licensed under MIT License
+# SlugSight Avionics GDS
+# Copyright (c) 2025 Rocket Team
+# Licensed under the MIT License (See repository LICENSE file for details)
+# ---------------------------------------------------------------------------
 
 import serial
 import serial.tools.list_ports
