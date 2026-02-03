@@ -73,9 +73,8 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 #define LSM_CS      9
 #define LIS3MDL_CS  5
 
-
 // --- Record Pin ---
-#define RECORD_PIN  12
+#define RECORD_PIN  A4
 
 // --- Sensor Objects ---
 Adafruit_LSM6DSOX sox;
@@ -195,6 +194,7 @@ void runCalibrationMode() {
 
 void setup() {
   Serial.begin(115200);
+  delay(2000);
   unsigned long s = millis();
   while (!Serial && (millis() - s < 2000));
 
@@ -338,8 +338,10 @@ void loop() {
       vel_time_old = millis();
     }
 
+    float accel = sqrt(pow(accel_x_g, 2) + pow(accel_y_g, 2) + pow((accel_z_g - 1), 2));
+
     // Send Record Pin if Needed
-    if(vertical_velocity_mps > 30) {
+    if(accel > 0.1) { //30
       digitalWrite(RECORD_PIN, HIGH);
     }
 
