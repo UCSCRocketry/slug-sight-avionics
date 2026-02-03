@@ -73,6 +73,10 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 #define LSM_CS      9
 #define LIS3MDL_CS  5
 
+
+// --- Record Pin ---
+#define RECORD_PIN  12
+
 // --- Sensor Objects ---
 Adafruit_LSM6DSOX sox;
 Adafruit_LIS3MDL  lis3mdl;
@@ -198,6 +202,10 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
+
+  // --- Initialized Record Pin ---
+  pinMode(RECORD_PIN, OUTPUT);
+  digitalWrite(RECORD_PIN, LOW);
 
   // --- Init Hardware ---
   pinMode(RFM95_RST, OUTPUT);
@@ -328,6 +336,11 @@ void loop() {
       vertical_velocity_mps = (fused_altitude_m - altitude_old) / dt;
       altitude_old = fused_altitude_m;
       vel_time_old = millis();
+    }
+
+    // Send Record Pin if Needed
+    if(vertical_velocity_mps > 30) {
+      digitalWrite(RECORD_PIN, HIGH);
     }
 
     vbat = analogRead(VBATPIN) * 2.0 * 3.3 / 1024.0;
