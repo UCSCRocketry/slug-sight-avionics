@@ -1,4 +1,3 @@
-
 ## Hardware Components & Wiring
 
 ### 1. Transmitter (On Rocket)
